@@ -28,7 +28,9 @@ body {
   margin: 1% auto;
 }
 
-
+.newUserBtn {
+  margin: 20px auto;
+}
 
 @media(max-width:768px) {
   .loginbox, .chirps {

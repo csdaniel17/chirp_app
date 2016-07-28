@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, session
 import pg
 import datetime
+import bcrypt
 
 db = pg.DB('chirp_db')
 app = Flask('ChirpApp')
@@ -25,9 +26,10 @@ def submit_signup():
     # get the input info
     name = request.form['name']
     username = request.form['username']
-    password = request.form['password']
+    password = request.form['password'].encode('utf-8')
+    hashed = bcrypt.hashpw(password, bcrypt.gensalt())
     # insert new user to db
-    db.insert('users', name=name, username=username, password=password)
+    db.insert('users', name=name, username=username, password=hashed)
     # send to login page to verify
     return redirect('/login')
 
@@ -43,7 +45,21 @@ def login():
 def submit_login():
     # get input info
     username = request.form['username']
-    password = request.form['password']
+    password = request.form['password'].encode('utf-8')
+    hashed = db.query('''
+        select
+            users.password
+        from
+            users
+        where
+            users.username = $1
+    ''', username).dictresult()[0]['password']
+    if bcrypt.hashpw(password, hashed) == hashed:
+        print("It Matches!")
+    else:
+        print("It Does not Match :(")
+
+
     # query into db to check username
     query = db.query("select users.id from users where username = $1", username)
     dictionaried_result = query.dictresult()
@@ -131,10 +147,21 @@ def user_profile():
         ''', session['username'])
         # get query values as list of named tuples
         chirps = query.namedresult()
+        bio_info = db.query('''
+        select
+            users.name,
+            users.username
+        from
+            users
+        where
+            users.username = $1
+        ''', session['username']).namedresult()
+        print bio_info
         # render to profile page
         return render_template(
             'profile.html',
             title='profile',
+            bio=bio_info,
             chirps=chirps
         )
 

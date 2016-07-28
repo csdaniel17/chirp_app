@@ -2,11 +2,16 @@
 {% block body %}
 
 <div class="row">
-  <p class="text-center">{{title}}</p>
+    {% for bio_info in bio %}
+    <h3 class="text-center">{{bio_info.name}}'s chirps</h3>
+    <h3 class="text-center">@{{bio_info.username}}</h3>
+    {% endfor %}
+
 </div>
 
 <div class="row">
   {% for chirp in chirps %}
+
   <div class="well well-lg chirps col-md-12">
     <strong>{{chirp.name}}</strong> @{{chirp.username}} - {{chirp.chirp_date.strftime('%x %X')}}
     <br>

@@ -3,6 +3,14 @@
 
 <div class="row">
   <p class="text-center">{{title}}</p>
+  <div class="chirp_input text-center">
+    <form action="/chirps" class="form-inline" method="POST">
+      <div class="form-group">
+        <input name="new_chirp" type="text" class="form-control input-lg" maxlength="141" placeholder="What's on your mind?">
+        <button type="submit" name="button" class="btn">chirp</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <div class="row">

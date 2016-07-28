@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="loginbox">
+  <form action="/submit_signup" method="POST">
+    <h2>Sign up</h2>
+    <p class="text-center">You will login again on next page</p>
+    <br>
+    <hr>
+    <div class="form-group">
+      <label for="name">Name:</label>
+      <input name="name" type="text" class="form-control" placeholder="name">
+      <br>
+    </div>
+    <div class="form-group">
+      <label for="username">Username:</label>
+      <input name="username" type="text" class="form-control" placeholder="Username">
+      <br>
+    </div>
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input name="password" type="password" class="form-control" placeholder="Password">
+      <br>
+    </div>
+    <div class="submitBtn">
+      <button type="submit" class="btn">Submit</button>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

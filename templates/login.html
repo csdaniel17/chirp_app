@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="loginbox">
+  <form action="/submit_login" method="POST">
+    <h2>Login</h2>
+    <br>
+    <hr>
+    <div class="form-group">
+      <label for="username">Username:</label>
+      <input name="username" type="text" class="form-control" placeholder="Username">
+      <br>
+    </div>
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input name="password" type="password" class="form-control" placeholder="Password">
+      <br>
+    </div>
+    <div class="submitBtn">
+      <button type="submit" class="btn">Submit</button>
+      <a href="/signup"><button type="submit" class="btn newUserBtn">New User?</button></a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

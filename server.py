@@ -45,10 +45,13 @@ def submit_login():
     username = request.form['username']
     password = request.form['password']
     # query into db to check username
-    query = db.query("select users.username from users where username = $1", username)
+    query = db.query("select users.id from users where username = $1", username)
     dictionaried_result = query.dictresult()
+    user_id = dictionaried_result[0]['id']
     if len(dictionaried_result) > 0:
         session['username'] = username
+        session['user_id'] = user_id
+        print session['user_id']
         return redirect('/timeline')
     else:
         return redirect('/signup')
@@ -56,31 +59,48 @@ def submit_login():
 
 @app.route('/timeline')
 def timeline():
+    if not 'user_id' in session:
+        # query all chirps
+        query = db.query('''
+        select
+            users.name,
+        	users.username,
+            chirp.chirp_date,
+            chirp.chirp_content
+        from
+            chirp
+        left outer join
+        	users on chirp.user_id = users.id
+        order by
+            chirp_date desc
+        ''')
+        chirps = query.namedresult()
     # query to find chirp info
-    query = db.query('''
-    select
-    	users.name,
-    	users.username,
-    	chirp.chirp_content,
-    	chirp.chirp_date
-    from
-    	chirp
-    left outer join
-    	users on chirp.user_id = users.id
-    where
-    	chirp.user_id = 1 or chirp.user_id in
-    	(select
-    		following_id
-    	from
-    		follow
-    	where
-    		follow.follower_id = 1)
-    order by
-    	chirp.chirp_date desc
-    ''')
-    # get query values as list of named tuples
-    chirps = query.namedresult()
-    # render to timeline page
+    else:
+        query = db.query('''
+        select
+        	users.name,
+        	users.username,
+        	chirp.chirp_content,
+        	chirp.chirp_date
+        from
+        	chirp
+        left outer join
+        	users on chirp.user_id = users.id
+        where
+        	chirp.user_id = $1 or chirp.user_id in
+        	(select
+        		following_id
+        	from
+        		follow
+        	where
+        		follow.follower_id = $1)
+        order by
+        	chirp.chirp_date desc
+        ''', session['user_id'])
+        # get query values as list of named tuples
+        chirps = query.namedresult()
+        # render to timeline page
     return render_template(
         'timeline.html',
         title='timeline',
@@ -90,42 +110,62 @@ def timeline():
 
 @app.route('/profile')
 def user_profile():
-    # query to find chirp info
-    query = db.query('''
-    select
-    	users.name,
-    	users.username,
-    	chirp.chirp_content,
-    	chirp.chirp_date
-    from
-    	chirp
-    left outer join
-    	users on chirp.user_id = users.id
-    where
-    	users.id = 1
-    order by
-    	chirp.chirp_date desc
-    ''')
-    # get query values as list of named tuples
-    chirps = query.namedresult()
-    # render to profile page
-    return render_template(
-        'profile.html',
-        title='profile',
-        chirps=chirps
-    )
+    if not 'user_id' in session:
+        return redirect('/login')
+    else:
+        # query to find chirp info
+        query = db.query('''
+        select
+        	users.name,
+        	users.username,
+        	chirp.chirp_content,
+        	chirp.chirp_date
+        from
+        	chirp
+        left outer join
+        	users on chirp.user_id = users.id
+        where
+        	users.username = $1
+        order by
+        	chirp.chirp_date desc
+        ''', session['username'])
+        # get query values as list of named tuples
+        chirps = query.namedresult()
+        # render to profile page
+        return render_template(
+            'profile.html',
+            title='profile',
+            chirps=chirps
+        )
 
 # add chirps
 @app.route('/chirps', methods=['POST'])
 def submit_chirp():
     # get chirp input
     chirp_content = request.form['new_chirp']
+    # get username
+    username = session['username']
+    query = db.query('''
+        select
+            users.id
+        from
+            users
+        where
+            users.username = $1
+    ''', username)
+    user_id = query.namedresult()[0].id
     # add timestamp
     time = datetime.datetime.now()
     # insert it into db
-    db.insert('chirp', user_id=1, chirp_date=time, chirp_content=chirp_content)
+    db.insert('chirp', user_id=user_id, chirp_date=time, chirp_content=chirp_content)
     return redirect('/timeline')
 
+
+# logout
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')
 
 # secret key for sessions
 app.secret_key = 'CSF686CCF85C6FRTCHQDBJDXHBHC1G478C86GCFTDCR'

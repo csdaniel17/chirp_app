@@ -16,7 +16,7 @@
 <div class="row">
   {% for chirp in chirps %}
   <div class="well well-lg chirps col-md-12">
-    <strong>{{chirp.name}}</strong> @{{chirp.username}} - {{chirp.chirp_date}}
+    <strong>{{chirp.name}}</strong> @{{chirp.username}} - {{chirp.chirp_date.strftime('%x %X')}}
     <br>
     {{chirp.chirp_content}}
   </div>

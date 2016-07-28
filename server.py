@@ -58,8 +58,6 @@ def submit_login():
         print("It Matches!")
     else:
         print("It Does not Match :(")
-
-
     # query into db to check username
     query = db.query("select users.id from users where username = $1", username)
     dictionaried_result = query.dictresult()

@@ -27,6 +27,7 @@ def submit_signup():
     name = request.form['name']
     username = request.form['username']
     password = request.form['password'].encode('utf-8')
+    # encrypt password
     hashed = bcrypt.hashpw(password, bcrypt.gensalt())
     # insert new user to db
     db.insert('users', name=name, username=username, password=hashed)
@@ -46,6 +47,7 @@ def submit_login():
     # get input info
     username = request.form['username']
     password = request.form['password'].encode('utf-8')
+    # find the encrypted password from db
     hashed = db.query('''
         select
             users.password
@@ -54,6 +56,7 @@ def submit_login():
         where
             users.username = $1
     ''', username).dictresult()[0]['password']
+    # check if they match
     if bcrypt.hashpw(password, hashed) == hashed:
         print("It Matches!")
     else:
@@ -65,7 +68,6 @@ def submit_login():
     if len(dictionaried_result) > 0:
         session['username'] = username
         session['user_id'] = user_id
-        print session['user_id']
         return redirect('/timeline')
     else:
         return redirect('/signup')
@@ -73,6 +75,7 @@ def submit_login():
 
 @app.route('/timeline')
 def timeline():
+    # if no one is logged in, show all chirps in db
     if not 'user_id' in session:
         # query all chirps
         query = db.query('''
@@ -89,7 +92,7 @@ def timeline():
             chirp_date desc
         ''')
         chirps = query.namedresult()
-    # query to find chirp info
+    # query to find chirp info from user and users they follow
     else:
         query = db.query('''
         select
@@ -170,6 +173,7 @@ def submit_chirp():
     chirp_content = request.form['new_chirp']
     # get username
     username = session['username']
+    # match the username to user id in db
     query = db.query('''
         select
             users.id
